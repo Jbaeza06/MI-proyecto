@@ -1,1 +1,12 @@
+Ideas del proyecto
+
+La idea principal es una aplicación móvil llamada Calculadora de Gastos Personales, desarrollada en Android Studio.
+
+El Objetivo es 
+- Registrar gastos diarios.
+- Calcular automáticamente el total gastado.
+- Ofrecer una interfaz sencilla e intuitiva.
+
+Motivación
+Este proyecto es realista para el tiempo disponible (2 meses) y permite aplicar conceptos básicos de Android Studio como Activities, layouts, listas y almacenamiento local.
 
