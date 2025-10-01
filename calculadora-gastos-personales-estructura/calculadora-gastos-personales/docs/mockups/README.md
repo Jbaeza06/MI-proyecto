@@ -1,4 +1,1 @@
-Coloca aquí tus imágenes de mockups (exportadas desde Figma o capturas del prototipo).
-Ejemplos sugeridos:
-- `home.png`
-- `add.png`
+[mockups.pdf](https://github.com/user-attachments/files/22631327/mockups.pdf)
