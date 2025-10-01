@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Gastos - Prototipo</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel-2: #1f2937;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --primary: #22c55e;
+      --danger: #ef4444;
+      --accent: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: linear-gradient(160deg, #0b1023, var(--bg));
+      color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+      display: grid; place-items: center; min-height: 100vh; padding: 24px;
+    }
+    .phone {
+      width: 100%; max-width: 430px; min-height: 760px; background: rgba(17,24,39,0.85);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 28px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+      display: flex; flex-direction: column; backdrop-filter: blur(6px);
+    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; background: linear-gradient(180deg, rgba(59,130,246,0.2), rgba(59,130,246,0)); }
+    .title { font-weight: 700; letter-spacing: .3px; }
+    .subtitle { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .total {
+      margin: 8px 20px 16px; padding: 18px; background: linear-gradient(180deg, rgba(34,197,94,0.12), rgba(34,197,94,0.05));
+      border: 1px solid rgba(34,197,94,0.25); border-radius: 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .total h2 { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); }
+    .total .amount { font-size: 28px; font-weight: 800; }
+    .list { flex: 1; overflow: auto; padding: 0 10px 96px; }
+    .empty { color: var(--muted); text-align: center; margin-top: 32px; }
+    .card { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; background: var(--panel-2);
+      border: 1px solid rgba(255,255,255,0.06); padding: 14px; margin: 10px; border-radius: 14px; }
+    .card:hover { border-color: rgba(255,255,255,0.15); }
+    .card h3 { margin: 0; font-size: 16px; }
+    .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .value { font-weight: 700; font-size: 16px; text-align: right; }
+    .actions { display: flex; gap: 8px; grid-column: 1 / -1; }
+    .btn { border: 1px solid rgba(255,255,255,0.08); color: var(--text); background: transparent; padding: 8px 12px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+    .btn:hover { border-color: rgba(255,255,255,0.18); }
+    .btn-danger { border-color: rgba(239,68,68,0.5); color: #fecaca; }
+    .fab {
+      position: fixed; bottom: 28px; right: 28px; width: 58px; height: 58px; border-radius: 50%;
+      background: linear-gradient(160deg, var(--accent), #60a5fa); border: none; color: white; font-size: 28px; font-weight: 800; cursor: pointer; box-shadow: 0 14px 30px rgba(59,130,246,0.35);
+    }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; padding: 24px; }
+    .modal { width: 100%; max-width: 440px; background: var(--panel); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 18px; }
+    .modal h2 { margin: 0 0 12px; }
+    .field { display: grid; gap: 6px; margin: 10px 0; }
+    input[type="text"], input[type="number"], input[type="date"] {
+      background: #0b1222; color: var(--text); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 10px 12px; outline: none;
+    }
+    input::placeholder { color: #6b7280; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+    .btn-primary { background: var(--primary); border: none; color: #052e14; font-weight: 800; }
+    .btn-secondary { background: transparent; }
+    .footer { padding: 10px 16px; color: var(--muted); font-size: 12px; text-align: center; }
+    @media (max-width: 480px) {
+      body { padding: 10px; }
+      .phone { min-height: 84vh; }
+      .fab { right: 18px; bottom: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone" role="application" aria-label="Prototipo Calculadora de Gastos">
+    <div class="topbar">
+      <div>
+        <div class="title">Calculadora de Gastos</div>
+        <div class="subtitle">Prototipo interactivo (HTML + JS)</div>
+      </div>
+    </div>
+
+    <div class="total" aria-live="polite">
+      <h2>Total gastado</h2>
+      <div class="amount" id="total">$ 0</div>
+    </div>
+
+    <div class="list" id="list">
+      <p class="empty" id="empty">Aun no hay gastos. Usa el botón + para agregar.</p>
+    </div>
+
+    <div class="footer">Los datos se guardan en tu navegador (localStorage) para simular persistencia.</div>
+  </div>
+
+  <button class="fab" id="fab" aria-label="Agregar gasto">+</button>
+
+  <div class="modal-backdrop" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+    <div class="modal">
+      <h2 id="dlg-title">Agregar gasto</h2>
+      <div class="field">
+        <label for="title">Descripción</label>
+        <input id="title" type="text" placeholder="Ej. Transporte, Almuerzo" />
+      </div>
+      <div class="field">
+        <label for="amount">Monto</label>
+        <input id="amount" type="number" step="0.01" inputmode="decimal" placeholder="Ej. 15.50" />
+      </div>
+      <div class="field">
+        <label for="date">Fecha</label>
+        <input id="date" type="date" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="cancel">Cancelar</button>
+        <button class="btn btn-primary" id="save">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (q) => document.querySelector(q);
+    const listEl = $('#list');
+    const totalEl = $('#total');
+    const emptyEl = $('#empty');
+    const fab = $('#fab');
+    const backdrop = $('#backdrop');
+    const title = $('#title');
+    const amount = $('#amount');
+    const date = $('#date');
+    const cancel = $('#cancel');
+    const save = $('#save');
+
+    const STORAGE_KEY = 'gastos_prototipo_v1';
+
+    let expenses = [];
+
+    function fmtCurrency(n) {
+      return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+    }
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        expenses = raw ? JSON.parse(raw) : [];
+      } catch(e){ expenses = []; }
+    }
+
+    function persist() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+    }
+
+    function recalc() {
+      const total = expenses.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+      totalEl.textContent = fmtCurrency(total);
+      emptyEl.style.display = expenses.length ? 'none' : 'block';
+    }
+
+    function render() {
+      listEl.innerHTML = '';
+      if (!expenses.length) {
+        listEl.appendChild(emptyEl);
+      }
+      expenses
+        .slice()
+        .sort((a,b) => (b.date||'').localeCompare(a.date||''))
+        .forEach(exp => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div>
+              <h3>${escapeHtml(exp.title||'Sin titulo')}</h3>
+              <div class="meta">${exp.date || 'Sin fecha'}</div>
+            </div>
+            <div class="value">${fmtCurrency(exp.amount||0)}</div>
+            <div class="actions">
+              <button class="btn btn-danger" data-id="${exp.id}">Eliminar</button>
+            </div>
+          `;
+          card.querySelector('.btn-danger').addEventListener('click', () => removeExpense(exp.id));
+          listEl.appendChild(card);
+        });
+      recalc();
+    }
+
+    function openModal() {
+      backdrop.style.display = 'flex';
+      title.value = '';
+      amount.value = '';
+      date.valueAsDate = new Date();
+      setTimeout(() => title.focus(), 0);
+    }
+    function closeModal() { backdrop.style.display = 'none'; }
+
+    function addExpense() {
+      const t = (title.value || '').trim();
+      const a = Number(amount.value);
+      const d = date.value || '';
+      if (!t || isNaN(a) || a <= 0) {
+        alert('Completa la descripcion y un monto valido (> 0).');
+        return;
+      }
+      expenses.push({ id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())), title: t, amount: a, date: d });
+      persist();
+      render();
+      closeModal();
+    }
+
+    function removeExpense(id) {
+      expenses = expenses.filter(e => e.id !== id);
+      persist();
+      render();
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',''':'&#39;'}[m]));
+    }
+
+    fab.addEventListener('click', openModal);
+    cancel.addEventListener('click', closeModal);
+    save.addEventListener('click', addExpense);
+    backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
+    amount.addEventListener('keydown', (e) => { if (e.key === 'Enter') addExpense(); });
+
+    load();
+    render();
+  </script>
+</body>
+</html>
